@@ -1,0 +1,65 @@
+{
+  "meta": {
+    "project": "ADR Reader — detecting adverse drug events in medical text",
+    "note": "Model verdicts are real outputs observed during the Project 7 runs (1 = flags an adverse drug event). 'gold' is the dataset's true label. 'llm_extracted' is what the LLM pulled out, shown to expose hallucinations.",
+    "scoreboard_metric": "F1 score on the 'Related' (ADE) class"
+  },
+  "scoreboard": {
+    "domain": 0.83,
+    "keyword": 0.79,
+    "general": 0.73,
+    "llm": 0.71
+  },
+  "model_labels": {
+    "keyword": "Keyword model (TF-IDF)",
+    "general": "General AI (MiniLM embeddings)",
+    "domain": "Domain AI (PubMedBERT)",
+    "llm": "LLM (zero-shot)"
+  },
+  "examples": [
+    {
+      "id": "doxorubicin-trap",
+      "text": "RESULTS: Evidence of neurological improvement and rehabilitation potential after severe myelopathy due to intrathecal injection of doxorubicin.",
+      "gold": 1,
+      "drug": "doxorubicin",
+      "effect": "myelopathy",
+      "models": { "keyword": 1, "general": 1, "domain": 0, "llm": 0 },
+      "correct": { "keyword": true, "general": true, "domain": false, "llm": false },
+      "llm_extracted": { "drug": "doxorubicin", "effect": "neurological improvement" },
+      "lesson": "The hard trap: the 'improvement' framing fooled the domain model AND the LLM — but the simple keyword model caught the harm. Even the best model slips on tricky sentences."
+    },
+    {
+      "id": "isoniazid-clear",
+      "text": "Hepatotoxicity was observed in three patients treated with isoniazid.",
+      "gold": 1,
+      "drug": "isoniazid",
+      "effect": "hepatotoxicity",
+      "models": { "keyword": 1, "general": 1, "domain": 1, "llm": 1 },
+      "correct": { "keyword": true, "general": true, "domain": true, "llm": true },
+      "llm_extracted": null,
+      "lesson": "A clear-cut adverse drug event — all four models agree."
+    },
+    {
+      "id": "lithium-clear-neg",
+      "text": "Lithium was effective in reducing manic episodes, with no adverse effects reported.",
+      "gold": 0,
+      "drug": "lithium",
+      "effect": null,
+      "models": { "keyword": 0, "general": 0, "domain": 0, "llm": 0 },
+      "correct": { "keyword": true, "general": true, "domain": true, "llm": true },
+      "llm_extracted": null,
+      "lesson": "A clear non-event (the drug helped) — all four models agree."
+    },
+    {
+      "id": "retrocorneal-crywolf",
+      "text": "On cessation of the injections, the retrocorneal membrane grew rapidly to involve the entire posterior cornea.",
+      "gold": 0,
+      "drug": null,
+      "effect": null,
+      "models": { "keyword": 0, "general": 0, "domain": 0, "llm": 1 },
+      "correct": { "keyword": true, "general": true, "domain": true, "llm": false },
+      "llm_extracted": { "drug": null, "effect": "retrocorneal membrane growth" },
+      "lesson": "The LLM cried wolf — it flagged a harm with no named drug, contradicting itself and the label."
+    }
+  ]
+}
